@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">HowLucky</string>
+    <string name="confirm">OK</string>
+    <string name="hat_img_desc">Hat</string>
+    <string name="clover_img_desc">Clover</string>
+    <string name="horseshoe_img_desc">Horseshoe</string>
+    <string name="rabbit_img_desc">Rabbit</string>
+    <string name="lucky_title">YOUR LUCK TODAY:</string>
+    <string name="ok_btn">OK</string>
+</resources>
