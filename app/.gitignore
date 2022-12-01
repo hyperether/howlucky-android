@@ -28,5 +28,3 @@ proguard/
 # Android Studio
 .idea
 *.iml
-
-fabric.properties

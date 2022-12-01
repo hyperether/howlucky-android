@@ -6,20 +6,17 @@ import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.SoundPool;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
+import androidx.fragment.app.FragmentActivity;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 
-import com.crashlytics.android.Crashlytics;
 import com.hyperether.util.MessageDialogFragment;
 import com.hyperether.util.ResultDialogFragment;
 
 import java.text.DateFormat;
 import java.util.Date;
-
-import io.fabric.sdk.android.Fabric;
 
 
 /**
@@ -62,7 +59,6 @@ public class HowLuckyActivity extends FragmentActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_how_lucky);
 
         // Get the comment text entered in EditTextHandler
