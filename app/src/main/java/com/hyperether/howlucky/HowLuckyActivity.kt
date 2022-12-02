@@ -74,6 +74,9 @@ class HowLuckyActivity : FragmentActivity() {
 
         // Initialize buttons
         initButtons()
+
+        val billingManager = BillingManager(applicationContext, this)
+        billingManager.open()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
