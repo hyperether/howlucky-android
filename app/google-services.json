@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "871148509842",
+    "project_id": "howlucky-android",
+    "storage_bucket": "howlucky-android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:871148509842:android:ab7435ec14842c249f244b",
+        "android_client_info": {
+          "package_name": "com.hyperether.howlucky"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "871148509842-2eufav3qu0es4qp2ndqnkq2g40r46m2n.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hyperether.howlucky",
+            "certificate_hash": "276aba37fab412cf68f5b6566f66e33ad09f99e7"
+          }
+        },
+        {
+          "client_id": "871148509842-dba2idm4u5rj10mvgm67u4nhiuhhg4ln.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtIkH_cs9a-X4xfcA9g6mu0GndWpdRQn0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "871148509842-dba2idm4u5rj10mvgm67u4nhiuhhg4ln.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

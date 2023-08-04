@@ -1,12 +1,21 @@
 package com.hyperether.howlucky
 
+import android.content.Intent
 import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.widget.ImageButton
 import androidx.fragment.app.FragmentActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.SignInButton
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
 import com.hyperether.util.MessageDialogFragment
 import com.hyperether.util.ResultDialogFragment
 import java.text.DateFormat
@@ -31,6 +40,13 @@ class HowLuckyActivity : FragmentActivity() {
     private var mButton8: ImageButton? = null
     var mClickCounter = 0
     var avgLuck = 0f
+
+    val REQUEST_CODE_SIGN_IN = 9001 // Request code for Google Sign-In
+    private lateinit var googleSignInClient: GoogleSignInClient
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken("871148509842-dba2idm4u5rj10mvgm67u4nhiuhhg4ln.apps.googleusercontent.com") // From google-services.json
+        .requestEmail()
+        .build()
 
     // Sound effects
     private var effectPool: SoundPool? = null
@@ -74,6 +90,34 @@ class HowLuckyActivity : FragmentActivity() {
 
         // Initialize buttons
         initButtons()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+        val signInButton = findViewById<SignInButton>(R.id.sign_in_button)
+        signInButton.setOnClickListener {
+            signIn()
+        }
+    }
+
+    private fun signIn() {
+        val signInIntent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_SIGN_IN) {
+            val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
+            handleSignInResult(task)
+        }
+    }
+
+    private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
+        try {
+            val account = completedTask.getResult(ApiException::class.java)
+            account.email?.let { Log.d("GOOGLE SIGN IN success, email: ", it) }
+        } catch (e: ApiException) {
+            e.status.statusCode.toString()?.let { Log.d("GOOGLE SIGN IN error: ", it) }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
