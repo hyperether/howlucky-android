@@ -10,7 +10,7 @@ import androidx.fragment.app.FragmentActivity
 import com.hyperether.util.MessageDialogFragment
 import com.hyperether.util.ResultDialogFragment
 import java.text.DateFormat
-import java.util.*
+import java.util.Date
 
 /**
  * Game application that determines your luck today
