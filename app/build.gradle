@@ -15,8 +15,10 @@ android {
         applicationId "com.hyperether.howlucky"
         minSdkVersion 24
         targetSdkVersion 33
-        versionCode 16
-        versionName "2.3.7"
+        versionCode 17
+        versionName "2.3.8"
+
+        buildConfigField("String", "QONVERSION_API_KEY",  "\"${project.findProperty("QONVERSION_API_KEY")}\"")
     }
     buildTypes {
         release {
@@ -39,8 +41,9 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    def billing_version = "5.1.0"
+    def billing_version = "7.0.0"
     implementation "com.android.billingclient:billing:$billing_version"
     implementation "com.android.billingclient:billing-ktx:$billing_version"
     implementation 'com.google.guava:guava:31.1-android'
+    implementation("io.qonversion.android.sdk:sdk:7.+")
 }

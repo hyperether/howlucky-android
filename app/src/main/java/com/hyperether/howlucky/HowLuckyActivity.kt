@@ -36,9 +36,14 @@ class HowLuckyActivity : FragmentActivity() {
     private var effectPool: SoundPool? = null
     private var badSound = 0
     private var goodSound = 0
+
+    val qonversionViewModel: QonversionViewModel = QonversionViewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_how_lucky)
+
+        SubscriptionManager.initialize(applicationContext)
 
         // Get the comment text entered in EditTextHandler
         val settings = getSharedPreferences(PREF_FILE, 0)
@@ -76,7 +81,13 @@ class HowLuckyActivity : FragmentActivity() {
         initButtons()
 
         val billingManager = BillingManager(applicationContext, this)
-        billingManager.open()
+//        billingManager.open()
+
+        qonversionViewModel.loadOffer(this)
+//        qonversionViewModel.startPurchase(this, onErrorPurchase = {
+//        }
+//        )
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
