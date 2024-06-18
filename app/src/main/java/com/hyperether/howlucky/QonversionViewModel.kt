@@ -1,6 +1,9 @@
 package com.hyperether.howlucky
 
 import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.android.billingclient.api.ProductDetails
@@ -12,26 +15,45 @@ import com.qonversion.android.sdk.dto.entitlements.QEntitlement
 import com.qonversion.android.sdk.dto.entitlements.QEntitlementRenewState
 import com.qonversion.android.sdk.dto.offerings.QOfferings
 import com.qonversion.android.sdk.dto.products.QProduct
+import com.qonversion.android.sdk.dto.properties.QUserProperties
 import com.qonversion.android.sdk.listeners.QonversionEntitlementsCallback
 import com.qonversion.android.sdk.listeners.QonversionOfferingsCallback
 import com.qonversion.android.sdk.listeners.QonversionUserCallback
+import com.qonversion.android.sdk.listeners.QonversionUserPropertiesCallback
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.regex.Pattern
 
 class QonversionViewModel() : ViewModel() {
 
     val ENTITLEMENT_ID = "business_card_service_access"
-    private lateinit var product: QProduct
+    private lateinit var mproduct: QProduct
     private val productDetails: MutableMap<String, ProductDetails> = HashMap()
+    lateinit var products: List<QProduct>
 
     fun loadOffer(activity: Activity) {
         Qonversion.shared.offerings(object : QonversionOfferingsCallback {
             override fun onSuccess(offerings: QOfferings) {
                 val mainOffering = offerings.main
                 if (mainOffering != null && mainOffering.products.isNotEmpty()) {
+                    products = mainOffering.products
+                    mproduct = products[1]
                     Log.d("OnSuccessOffering", mainOffering.products.toString())
-                    product = mainOffering.products.firstOrNull()!!
-                    startPurchase(activity, onErrorPurchase = {
+                    for (product in mainOffering.products) {
+//                        mproduct = product
+                        Log.d("$$$$$$", product.storeDetails.toString())
+                        Log.d(
+                            "^^^^",
+                            "then ${product.prettyPrice.orEmpty()} / ${
+                                product.subscriptionPeriod?.unit.toString().orEmpty()
+                            }"
+                        )
+                        Log.d("^^^^", product.trialPeriod.toString())
+                        Log.d("^^^^", product.subscriptionPeriod.toString())
+                        Log.d("&&&&&&&", getReadablePeriod(product.trialPeriod?.iso ?: ""))
                     }
-                    )
+                    //startPurchase(activity, onErrorPurchase = {
+                    // })
                 }
             }
 
@@ -41,49 +63,106 @@ class QonversionViewModel() : ViewModel() {
         })
     }
 
-    fun startPurchase(activity: Activity, onErrorPurchase: (String) -> Unit) {
-        val purchaseModel = product.toPurchaseModel(product.offeringID)
-        Qonversion.shared.purchase(activity, purchaseModel, callback = object :
-            QonversionEntitlementsCallback {
-            override fun onSuccess(entitlements: Map<String, QEntitlement>) {
-                val premiumEntitlement = entitlements[ENTITLEMENT_ID]
-                if (premiumEntitlement != null && premiumEntitlement.isActive) {
-                    Log.d("onSuccessPurchase", entitlements.toString())
-                }
-            }
+    fun getReadablePeriod(billingPeriod: String): String {
+        if (billingPeriod.startsWith("P")) {
+            val period = billingPeriod.substring(1)
+            val number = period.substring(0, period.length - 1).toInt()
+            val unit = period.last()
 
-            override fun onError(error: QonversionError) {
-                onErrorPurchase(error.description)
-                if (error.code === QonversionErrorCode.PurchaseInvalid) {
-                    Log.d("onErrorPurchase", error.toString())
-                }
+            return when (unit) {
+                'D' -> "$number day${if (number > 1) "s" else ""} free"
+                'W' -> "$number week${if (number > 1) "s" else ""} free"
+                'M' -> "$number month${if (number > 1) "s" else ""} free"
+                'Y' -> "$number year${if (number > 1) "s" else ""} free"
+                else -> "Free trial period"
             }
-        })
+        }
+        return "Free trial period"
     }
 
-    fun updatePurchase(activity: Activity) {
-        val purchaseUpdateModel = product.toPurchaseUpdateModel("oldProductId")
-        Qonversion.shared.updatePurchase(
-            activity,
-            purchaseUpdateModel,
-            callback = object : QonversionEntitlementsCallback {
+    fun startPurchase(activity: Activity, onErrorPurchase: (String) -> Unit) {
+        val purchaseModel = mproduct.toPurchaseModel("testoffering")
+        //val product = products.find { it.qonversionID == "qonversion-premium6" }
+        //val purchaseModel = product?.toPurchaseModel()
+        if (mproduct == null) {
+            onErrorPurchase("Product not found")
+            return
+        }
+        if (purchaseModel != null) {
+            Qonversion.shared.purchase(activity, purchaseModel, callback = object :
+                QonversionEntitlementsCallback {
                 override fun onSuccess(entitlements: Map<String, QEntitlement>) {
-                    val premiumEntitlement = entitlements[ENTITLEMENT_ID]
+                    val premiumEntitlement = entitlements[""]
                     if (premiumEntitlement != null && premiumEntitlement.isActive) {
-                        Log.d("onSuccessUpdatePurchase", entitlements.toString())
+                        Log.d("onSuccessPurchase", entitlements.toString())
                     }
                 }
 
                 override fun onError(error: QonversionError) {
-                    Log.d("onErrorUpdatePurchase", error.toString())
+                    onErrorPurchase(error.description)
+                    if (error.code === QonversionErrorCode.ProductUnavailable) {
+                        Log.d("onErrorPurchase", error.toString())
+                    }
                 }
             })
+        }
+    }
+
+    fun checkSubscriptionChanges() {
+        Qonversion.shared.userProperties(object : QonversionUserPropertiesCallback {
+            override fun onError(error: QonversionError) {
+                Log.d("$$$$$$$$", error.toString())
+            }
+
+            override fun onSuccess(userProperties: QUserProperties) {
+                Log.d("^^^^^^^", userProperties.toString())
+            }
+
+        })
+    }
+
+    fun openSubscriptionManagement(context: Context) {
+//        val packageName = context?.packageName ?: return
+//        val url = "https://play.google.com/store/account/subscriptions?sku=package=$packageName"
+//
+//        val intent = Intent(Intent.ACTION_VIEW)
+//        intent.data = Uri.parse(url)
+//        if (intent.resolveActivity((context as Activity).packageManager) != null) {
+//            (context as Activity).startActivity(intent)
+//        } else {
+//            Log.e("SubscriptionManagement", "No browser found to open the subscription management page.")
+//        }
+        Qonversion.shared.syncPurchases()
+    }
+
+    fun updatePurchase(activity: Activity, id: String) {
+        //val purchaseUpdateModel = mproduct.toPurchaseUpdateModel("qonversion-premium7")
+        val product = products.find { it.qonversionID == "qonversion-premium6" }
+        val purchaseModel = product?.toPurchaseUpdateModel(id)
+
+        if (purchaseModel != null) {
+            Qonversion.shared.updatePurchase(
+                activity,
+                purchaseModel,
+                callback = object : QonversionEntitlementsCallback {
+                    override fun onSuccess(entitlements: Map<String, QEntitlement>) {
+                        val premiumEntitlement = entitlements["premium_access"]
+                        if (premiumEntitlement != null && premiumEntitlement.isActive) {
+                            Log.d("onSuccessUpdatePurchase", entitlements.toString())
+                        }
+                    }
+
+                    override fun onError(error: QonversionError) {
+                        Log.d("onErrorUpdatePurchase", error.toString())
+                    }
+                })
+        }
     }
 
     fun restorePurchase() {
         Qonversion.shared.restore(object : QonversionEntitlementsCallback {
             override fun onSuccess(entitlements: Map<String, QEntitlement>) {
-                val premiumEntitlement = entitlements[ENTITLEMENT_ID]
+                val premiumEntitlement = entitlements["premium_access"]
                 if (premiumEntitlement != null && premiumEntitlement.isActive) {
                     Log.d("onSuccessRestore", entitlements.toString())
                 }
@@ -95,34 +174,15 @@ class QonversionViewModel() : ViewModel() {
         })
     }
 
-    fun checkEntitlements() {
+    fun checkEntitlements(activity: Activity) {
         Qonversion.shared.checkEntitlements(object : QonversionEntitlementsCallback {
             override fun onSuccess(entitlements: Map<String, QEntitlement>) {
-                val premiumEntitlement = entitlements[ENTITLEMENT_ID]
+                val premiumEntitlement = entitlements["premium_access"]
                 if (premiumEntitlement != null && premiumEntitlement.isActive) {
-
-                    when (premiumEntitlement.renewState) {
-                        QEntitlementRenewState.NonRenewable -> {
-                            // NonRenewable is the state of a consumable or non-consumable in-app purchase
-                        }
-
-                        QEntitlementRenewState.WillRenew -> {
-                            // WillRenew is the state of an auto-renewable subscription
-                        }
-
-                        QEntitlementRenewState.BillingIssue -> {
-                            // Prompt the user to update the payment method.
-                        }
-
-                        QEntitlementRenewState.Canceled -> {
-                            // The user has turned off auto-renewal for the subscription, but the subscription has not expired yet.
-                            // Prompt the user to resubscribe with a special offer.
-                        }
-
-                        else -> {
-
-                        }
-                    }
+                    updatePurchase(activity, premiumEntitlement.productId)
+                } else {
+                    startPurchase(activity, onErrorPurchase = {
+                    })
                 }
             }
 

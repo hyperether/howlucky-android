@@ -5,7 +5,9 @@ import android.media.SoundPool
 import android.os.Bundle
 import android.view.Menu
 import android.view.View
+import android.widget.Button
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import androidx.fragment.app.FragmentActivity
 import com.hyperether.util.MessageDialogFragment
 import com.hyperether.util.ResultDialogFragment
@@ -44,6 +46,7 @@ class HowLuckyActivity : FragmentActivity() {
         setContentView(R.layout.activity_how_lucky)
 
         SubscriptionManager.initialize(applicationContext)
+        SubscriptionManager.userId?.let { qonversionViewModel.identify(it) }
 
         // Get the comment text entered in EditTextHandler
         val settings = getSharedPreferences(PREF_FILE, 0)
@@ -180,6 +183,14 @@ class HowLuckyActivity : FragmentActivity() {
         mButton8 = findViewById<View>(R.id.button8) as ImageButton
         // Register the onClick listener with the implementation above
         mButton8!!.setOnClickListener(mButton8Listener)
+        val view = findViewById<Button>(R.id.test)
+        view.setOnClickListener {
+            SubscriptionManager.userId?.let { it1 -> qonversionViewModel.identify(it1) }
+           // qonversionViewModel.openSubscriptionManagement(this)
+
+//            qonversionViewModel.restorePurchase()
+            qonversionViewModel.checkEntitlements(this)
+        }
     }
 
     val statusBarHeight: Int
